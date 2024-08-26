@@ -31,10 +31,9 @@ def clean_data(df):
     df = find_outliers(df, 'price')
 
     # Revolver los datos
-    # Imprimir head precios, street y city para verificar que se hayan revuelto
-    print(df[['price', 'street', 'city']].head())
+    # print(df[['price', 'street', 'city']].head())
     df = df.sample(frac=1).reset_index(drop=True)
-    print(df[['price', 'street', 'city']].head())
+    # print(df[['price', 'street', 'city']].head())
 
     # Definiendo variables X y Y
     X = df['sqft_living'].values
@@ -71,10 +70,10 @@ def update_w_and_b(X, y, w, b, alpha):
 def plot_epoch(X, y, w, b, e, loss):
     plt.scatter(X, y, color='blue', alpha=0.5)
     plt.plot([min(X), max(X)], [min(X) * w + b, max(X) * w + b], color='red')
-    plt.title("Epoch {} | Loss: {} | w:{}, b:{}".format(e, round(loss,2), round(w, 4), round(b, 4)))
+    plt.title("Epoch {} | Loss: {:.2f} | w:{:.4f}, b:{:.4f}".format(e, loss, w, b))
     plt.show()
 
-# Función que realiza el entrenamiento del modelo y grafica el progreso
+# Función que realiza el entrenamiento del modelo y grafica el progreso, para en el momento que la diferencia de costo entre epoch actual y pasado sea menor a 0.0001
 def train_and_plot(X, y, norm_x, norm_y, w, b, alpha):
     last_epoch_loss = 1000000000000001
     loss = 1000000000000000
@@ -94,8 +93,10 @@ def train_and_plot(X, y, norm_x, norm_y, w, b, alpha):
         e += 1
 
     print("Diferencia de costo entre epoch actual y pasado (buscando menor a 0.0001): {:.6f}".format(last_epoch_loss - loss))
-    print("Epoch: {}, Loss: {}, w: {}, b: {}".format(e, loss, w_original, b_original))
-    return w, b
+    print("Epoch: {}, Loss: {:.2f}, w: {:.4f}, b: {:.4f}".format(e, loss, w_original, b_original))
+    print()
+    plot_epoch(X, y, w_original, b_original, e, loss)
+    return w_original, b_original
 
 # Función para calcular el error cuadrático medio
 def avg_loss(X, y, w, b):
@@ -111,21 +112,49 @@ def predict(X, w, b):
 
 def main():
     df = pd.read_csv('./data/usa_housing.csv')
-    X, y= clean_data(df)
+    X, y = clean_data(df)
+
+    # Separar los datos en entrenamiento y prueba (80% - 20%)
+    X_train = X[:int(len(X)*0.8)]
+    y_train = y[:int(len(y)*0.8)]
+    X_test = X[int(len(X)*0.8):]
+    y_test = y[int(len(y)*0.8):]
 
     # Hacer la normalización de los datos
-    norm_X = (X - np.mean(X)) / np.std(X)
-    norm_Y = (y - np.mean(y)) / np.std(y)
+    norm_X = (X_train - np.mean(X_train)) / np.std(X_train)
+    norm_Y = (y_train - np.mean(y_train)) / np.std(y_train)
 
-    w = 100
-    b = -49
+    # Incializar w y b
+    w = 0.0
+    b = 0.0
     alpha = 0.01
     
     # Define epoch numbers to plot to visualize progress
     #epoch_plots = [0, 1, 2, 10, 50, 100, epochs]
 
     # epoch_plots = [i for i in range(0, 101, 10)]
-    w, b = train_and_plot(X, y, norm_X, norm_Y, w, b, alpha)
+    w_original, b_original = train_and_plot(X_train, y_train, norm_X, norm_Y, w, b, alpha)
+
+    # Hacer predicciones de los datos de prueba
+    y_pred = predict(X_test, w_original, b_original)
+
+    # Calcular el error cuadrático medio
+    mse = avg_loss(X_test, y_test, w_original, b_original)
+    print("Error cuadrático medio: {:.2f}".format(mse))
+
+    # Graficar los datos de prueba y las predicciones
+    plt.scatter(X_test, y_test, color='green', alpha=0.5)
+    plt.plot(X_test, y_pred, color='red')
+    plt.title("Predicciones")
+    plt.show()
+
+    # Graficar los datos de entrenamiento, prueba y las predicciones
+    plt.scatter(X_train, y_train, color='blue', alpha=0.5)
+    plt.scatter(X_test, y_test, color='green', alpha=0.5)
+    plt.plot(X_test, y_pred, color='red')
+    plt.title("Datos de entrenamiento y prueba")
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
