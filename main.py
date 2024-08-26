@@ -57,14 +57,19 @@ def plot_data(X_train, y_train, X_test, y_test, title='USA Housing'):
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.show()
  
-# Función para entrenar el modelo de regresión lineal
+# Función para recalcular w y b en cada epoch
 def update_w_and_b(X, y, w, b, alpha):
+    # Inicializa las variables
     dl_dw = 0.0
     dl_db = 0.0
     N = len(X)
+
+    # Calcula las derivadas parciales de la función de costo
     for i in range(N):
         dl_dw += -2*X[i]*(y[i] - (w*X[i] + b))
         dl_db += -2*(y[i] - (w*X[i] + b))
+
+    # Actualización de w y b
     w = w - (1/float(N))*dl_dw*alpha
     b = b - (1/float(N))*dl_db*alpha
     return w, b
@@ -99,7 +104,7 @@ def train_and_plot(X, y, norm_x, norm_y, w, b, alpha):
     print("Epoch: {}, Loss: {:.2f}, w: {:.4f}, b: {:.4f}".format(e, loss, w_original, b_original))
     print()
     plot_epoch(X, y, w_original, b_original, e, loss)
-    return w_original, b_original
+    return w_original, b_original, loss
 
 # Función para calcular el error cuadrático medio
 def avg_loss(X, y, w, b):
@@ -113,17 +118,80 @@ def avg_loss(X, y, w, b):
 def predict(X, w, b):
     return w*X + b
 
+# Función para imprimir los mensajes iniciales
+def prints_iniciales():
+    print("Implementación de una técnica de aprendizaje máquina sin el uso de un framework.")
+    print("Diego Velázquez Saldaña - A01177877")
+    print()
+    print("El dataset utilizado es el de 'USA Housing' que contiene los precios de casas en USA con base en su tamaño. Se utilizará una regresión lineal para predecir el precio de una casa con base en su tamaño.")
+    print()
+    print("Se utilizará un 80% de los datos para entrenamiento y un 20% para prueba. Se hizo un shuffle de los datos para evitar sesgos y se almacenaron en archivos csv. De cualquier manera, se puede volver a randomizar los datos de entrenamiento/prueba si se desea. Esto suele dar un porcentaje de error de la predicción con base en el entrenamiento de alrededor de ±10%.")
+    print()
+
+    datos_precalculados = False
+
+    print("Desea utilizar los datos precalculados (o randomizar los datos de entrenamiento/prueba)? (s/n)")
+    respuesta = input()
+    if respuesta == 's':
+        datos_precalculados = True
+
+    return datos_precalculados
+
+# Función para imprimir las 5 predicciones más cercanas a la realidad y las 5 más alejadas
+def prints_predicciones(y_test, y_pred):
+    y_diff = y_test - y_pred
+    y_diff = np.abs(y_diff)
+    y_diff_sorted = np.argsort(y_diff)
+    print("5 predicciones más cercanas a la realidad:")
+    for i in range(5):
+        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[i]], y_test[y_diff_sorted[i]]))
+    
+    print()
+    print("5 predicciones más alejadas a la realidad:")
+    for i in range(1, 6):
+        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[-i]], y_test[y_diff_sorted[-i]]))
+
+    print()
+
+# Función para obtener los datos de entrenamiento y prueba con base en la respuesta del usuario
+def datos_entrenamiento_prueba(datos_precalculados):
+    if datos_precalculados:
+        # Leer datos de entrenamiento
+        train_data = pd.read_csv('./data/usa_housing_train.csv')
+        X_train = train_data['X_train'].values
+        y_train = train_data['y_train'].values
+
+        # Leer datos de prueba
+        test_data = pd.read_csv('./data/usa_housing_test.csv')
+        X_test = test_data['X_test'].values
+        y_test = test_data['y_test'].values
+    else:
+        # Leer los datos del archivo csv
+        df = pd.read_csv('./data/usa_housing.csv')
+        X, y = clean_data(df)
+
+        # Separar los datos en entrenamiento y prueba (80% - 20%)
+        sep = 0.8
+        X_train = X[:int(len(X)*sep)]
+        y_train = y[:int(len(y)*sep)]
+        X_test = X[int(len(X)*sep):]
+        y_test = y[int(len(y)*sep):]
+
+    return X_train, y_train, X_test, y_test
+
 # Función main
 def main():
-    # Leer los datos del archivo csv
-    df = pd.read_csv('./data/usa_housing.csv')
-    X, y = clean_data(df)
+    datos_precalculados = prints_iniciales()
+    
+    X_train, y_train, X_test, y_test = datos_entrenamiento_prueba(datos_precalculados)
 
-    # Separar los datos en entrenamiento y prueba (80% - 20%)
-    X_train = X[:int(len(X)*0.8)]
-    y_train = y[:int(len(y)*0.8)]
-    X_test = X[int(len(X)*0.8):]
-    y_test = y[int(len(y)*0.8):]
+    # Almacenar datos de entrenamiento
+    # train_data = pd.DataFrame({'X_train': X_train, 'y_train': y_train})
+    # train_data.to_csv('./data/usa_housing_train.csv', index=False)
+
+    # Almacenar datos de prueba
+    # test_data = pd.DataFrame({'X_test': X_test, 'y_test': y_test})
+    # test_data.to_csv('./data/usa_housing_test.csv', index=False)
 
     # Graficar los datos de entrenamiento y prueba
     plot_data(X_train, y_train, X_test, y_test)
@@ -143,28 +211,20 @@ def main():
     # epoch_plots = [i for i in range(0, 101, 10)]
 
     # Entrenar el modelo y graficar el progreso
-    w_original, b_original = train_and_plot(X_train, y_train, norm_X, norm_Y, w, b, alpha)
+    w_original, b_original, mse_t = train_and_plot(X_train, y_train, norm_X, norm_Y, w, b, alpha)
 
     # Hacer predicciones de los datos de prueba
     y_pred = predict(X_test, w_original, b_original)
 
-    # Calcular el error cuadrático medio
-    mse = avg_loss(X_test, y_test, w_original, b_original)
-    print("Error cuadrático medio de la predicción: {:.2f}".format(mse))
-    print()
-    
-    # Imprimir las 5 predicciones más cercanas a la realidad y las 5 más alejadas
-    y_diff = y_test - y_pred
-    y_diff = np.abs(y_diff)
-    y_diff_sorted = np.argsort(y_diff)
-    print("5 predicciones más cercanas a la realidad:")
-    for i in range(5):
-        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[i]], y_test[y_diff_sorted[i]]))
-    
-    print()
-    print("5 predicciones más alejadas a la realidad:")
-    for i in range(1, 6):
-        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[-i]], y_test[y_diff_sorted[-i]]))
+    prints_predicciones(y_test, y_pred)
+
+    # Calcular el error cuadrático medio de la predicción e imprimirlo junto con el error cuadrático medio del entrenamiento
+    mse_p = avg_loss(X_test, y_test, w_original, b_original)
+
+    # Imprimir el porcentaje de error de la predicción con base en el entrenamiento
+    print("Error cuadrático medio de la predicción: {:.2f}".format(mse_p))
+    print("Error cuadrático medio del entrenamiento: {:.2f}".format(mse_t))
+    print("Porcentaje de error de la predicción con base en el entrenamiento: {:.2f}%".format(((mse_p / mse_t) * 100) - 100))
 
     # Graficar los datos de prueba y las predicciones
     plt.scatter(X_test, y_test, color='green', alpha=0.5)
