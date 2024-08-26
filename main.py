@@ -42,13 +42,16 @@ def clean_data(df):
     return X, y  
 
 # Imprime los datos en un gráfico de dispersión
-def plot_data(X, Y):
-    plt.scatter(X, Y, color='blue', alpha=0.5)
+def plot_data(X_train, y_train, X_test, y_test, title='USA Housing'):
+    plt.scatter(X_train, y_train, color='blue', alpha=0.5)
+    plt.scatter(X_test, y_test, color='green', alpha=0.5)        
     plt.xlabel('sqft_living')
     plt.ylabel('price')
-    plt.title('USA Housing')
-    plt.xlim(X.min(), X.max()+(X.max()*0.1))
-    plt.ylim(Y.min(), Y.max()+(Y.max()*0.1))
+    plt.title(title)
+    # xlim agarrando el mínimo y máximo entre X_train y X_test
+    plt.xlim(min(min(X_train), min(X_test)), max(max(X_train), max(X_test)) + (max(max(X_train), max(X_test)) * 0.1))
+    # ylim agarrando el mínimo y máximo entre y_train y y_test
+    plt.ylim(min(min(y_train), min(y_test)), max(max(y_train), max(y_test)) + (max(max(y_train), max(y_test)) * 0.1))
     plt.ticklabel_format(style='plain', axis='y')
     formatter = FuncFormatter(lambda x, _: f'{int(x):,}')
     plt.gca().yaxis.set_major_formatter(formatter)
@@ -106,11 +109,13 @@ def avg_loss(X, y, w, b):
         total_error += (y[i] - (w*X[i] + b))**2
     return total_error / float(N)
 
-# Función para predecir el precio de una casa
+# Función para predecir el precio de una casa con base en su tamaño
 def predict(X, w, b):
     return w*X + b
 
+# Función main
 def main():
+    # Leer los datos del archivo csv
     df = pd.read_csv('./data/usa_housing.csv')
     X, y = clean_data(df)
 
@@ -119,6 +124,9 @@ def main():
     y_train = y[:int(len(y)*0.8)]
     X_test = X[int(len(X)*0.8):]
     y_test = y[int(len(y)*0.8):]
+
+    # Graficar los datos de entrenamiento y prueba
+    plot_data(X_train, y_train, X_test, y_test)
 
     # Hacer la normalización de los datos
     norm_X = (X_train - np.mean(X_train)) / np.std(X_train)
@@ -133,6 +141,8 @@ def main():
     #epoch_plots = [0, 1, 2, 10, 50, 100, epochs]
 
     # epoch_plots = [i for i in range(0, 101, 10)]
+
+    # Entrenar el modelo y graficar el progreso
     w_original, b_original = train_and_plot(X_train, y_train, norm_X, norm_Y, w, b, alpha)
 
     # Hacer predicciones de los datos de prueba
@@ -140,21 +150,27 @@ def main():
 
     # Calcular el error cuadrático medio
     mse = avg_loss(X_test, y_test, w_original, b_original)
-    print("Error cuadrático medio: {:.2f}".format(mse))
+    print("Error cuadrático medio de la predicción: {:.2f}".format(mse))
+    print()
+    
+    # Imprimir las 5 predicciones más cercanas a la realidad y las 5 más alejadas
+    y_diff = y_test - y_pred
+    y_diff = np.abs(y_diff)
+    y_diff_sorted = np.argsort(y_diff)
+    print("5 predicciones más cercanas a la realidad:")
+    for i in range(5):
+        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[i]], y_test[y_diff_sorted[i]]))
+    
+    print()
+    print("5 predicciones más alejadas a la realidad:")
+    for i in range(1, 6):
+        print("Predicción: {:.2f}, Realidad: {:.2f}".format(y_pred[y_diff_sorted[-i]], y_test[y_diff_sorted[-i]]))
 
     # Graficar los datos de prueba y las predicciones
     plt.scatter(X_test, y_test, color='green', alpha=0.5)
     plt.plot(X_test, y_pred, color='red')
     plt.title("Predicciones")
     plt.show()
-
-    # Graficar los datos de entrenamiento, prueba y las predicciones
-    plt.scatter(X_train, y_train, color='blue', alpha=0.5)
-    plt.scatter(X_test, y_test, color='green', alpha=0.5)
-    plt.plot(X_test, y_pred, color='red')
-    plt.title("Datos de entrenamiento y prueba")
-    plt.show()
-
 
 if __name__ == "__main__":
     main()
