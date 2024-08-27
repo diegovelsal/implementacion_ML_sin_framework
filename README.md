@@ -32,5 +32,54 @@ Para ejecutar este proyecto, se requieren las siguientes bibliotecas de Python:
 
 ## Resultados de los datos precalculados
 
+### 1. Distribución de los Datos de Entrenamiento y Prueba
+
+Se realizó una visualización de los datos utilizados para el entrenamiento y la prueba del modelo de regresión lineal. Los datos de entrenamiento se muestran en azul y los datos de prueba en verde.
+
+![Distribución de los Datos](./img/data.png)
+
+### 2. Progreso del Entrenamiento del Modelo
+
+Durante el entrenamiento, el modelo ajustó los parámetros `w` y `b` para minimizar la función de costo. Debido a los altos precios que se manejaban, se normalizaron los datos y posteriormente fue la línea la que se ajusto a como se vería ya con los datos originales, esto con el objetivo de tener un desempeño más rápido y eficaz. El objetivo que se buscaba con el modelo era realizar epochs hasta que la diferencia entre el epoch actual y pasado diera un costo cuya diferencia fuera menor a 0.0001, ya que a partir de aquí seguir haciendo epochs no será muy útil. 
+
+A continuación, se muestra una gráfica que representa el modelo en el último `epoch`, donde se puede observar la línea de regresión ajustada sobre los datos de entrenamiento.
+
+![Progreso del Entrenamiento](./img/epoch.png)
+
+### 3. Predicciones en los Datos de Prueba
+
+Una vez entrenado el modelo, se realizaron predicciones sobre el conjunto de prueba. En la gráfica siguiente, se puede observar la comparación entre los valores reales de los precios de las casas (en verde) y las predicciones realizadas por el modelo (en rojo).
+
+![Predicciones](./img/predicciones.png)
+
+### 4. Resumen del Desempeño
+
+El modelo fue entrenado utilizando un 80% de los datos y se evaluó en el 20% restante. A continuación se presenta un resumen del error cuadrático medio (MSE) tanto en el entrenamiento como en la prueba:
+
+- **Error cuadrático medio del entrenamiento**: 23209547361.58
+- **Error cuadrático medio de la predicción**: 23311569561.82
+- **Porcentaje de error de la predicción con base en el entrenamiento**: 0.44%
+
+Las 5 predicciones más cercanas a la realidad fueron las siguientes:
+
+|    Predicción   |    Realidad   |
+|-----------------|---------------|
+| $333657.84      | $334000.00    |
+| $370378.23      | $370000.00    |
+| $505576.03      | $506000.00    |
+| $530612.67      | $530000.00    |
+| $595707.91      | $594950.00    |
+
+Las 5 predicciones más alejadas a la realidad fueron las siguientes:
+
+|    Predicción   |    Realidad   |
+|-----------------|---------------|
+| $347010.70      | $839000.00    |
+| $497230.49      | $955500.00    |
+| $508914.25      | $930000.00    |
+| $507245.14      | $925000.00    |
+| $395414.86      | $810000.00    |
+
+
 ## Conclusión
-Este proyecto demuestra cómo se puede implementar un modelo de regresión lineal básico desde cero en Python, sin depender de frameworks de machine learning. El código incluye todos los pasos esenciales, desde la limpieza y preparación de los datos hasta la evaluación del modelo, lo que permite comprender los fundamentos del aprendizaje automático.
+Aunque observamos que la línea de regresión se ajusta a los datos, el error resultante es considerablemente grande. Esto indica que el modelo lineal simple puede no ser suficiente para capturar la complejidad de los datos. Para mejorar el modelo, sería útil considerar la inclusión de más características (features) relevantes que puedan influir en el precio de las casas, como la ubicación, el número de pisos, la vista, y la antigüedad del edificio. Además, podríamos explorar modelos más complejos, como la regresión polinomial o incluso modelos no lineales como árboles de decisión o redes neuronales, que podrían ofrecer una mejor capacidad predictiva al capturar relaciones más complejas entre las variables. Esto lo establezco como opciones para realizar un modelo con estos mismos datos en un futuro y que tenga resultados más adecuados y parecidos a la realidad.
