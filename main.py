@@ -55,7 +55,7 @@ def plot_data(X_train, y_train, X_test, y_test, title='USA Housing'):
     plt.ticklabel_format(style='plain', axis='y')
     formatter = FuncFormatter(lambda x, _: f'{int(x):,}')
     plt.gca().yaxis.set_major_formatter(formatter)
-    plt.savefig('./img/data.png')
+    # plt.savefig('./img/data.png')
     plt.show()
  
 # Función para recalcular w y b en cada epoch
@@ -80,7 +80,7 @@ def plot_epoch(X, y, w, b, e, loss):
     plt.scatter(X, y, color='blue', alpha=0.5)
     plt.plot([min(X), max(X)], [min(X) * w + b, max(X) * w + b], color='red')
     plt.title("Epoch {} | Loss: {:.2f} | w:{:.4f}, b:{:.4f}".format(e, loss, w, b))
-    plt.savefig('./img/epoch.png')
+    # plt.savefig('./img/epoch.png')
     plt.show()
 
 # Función que realiza el entrenamiento del modelo y grafica el progreso, para en el momento que la diferencia de costo entre epoch actual y pasado sea menor a 0.0001
@@ -234,7 +234,7 @@ def main():
     plt.scatter(X_test, y_test, color='green', alpha=0.5)
     plt.plot(X_test, y_pred, color='red')
     plt.title("Predicciones | Diferencia % entre errores: {:.2f}%".format(porcentaje_error))
-    plt.savefig('./img/predicciones.png')
+    # plt.savefig('./img/predicciones.png')
     plt.show()
 
 if __name__ == "__main__":
